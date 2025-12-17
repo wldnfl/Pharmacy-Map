@@ -1,9 +1,10 @@
 package com.example.pharmacymap
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 
-class FindPharmacyActivity : ComponentActivity() {
+class FindPharmacyActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.find_pharmacy)
