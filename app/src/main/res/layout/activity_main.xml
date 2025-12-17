@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="30dp"
+        android:text="통합 약 서비스 앱"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <!-- 약국 이미지 -->
+    <ImageView
+        android:id="@+id/imgPharmacy"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="40dp"
+        android:contentDescription="약국 이미지"
+        android:src="@drawable/ic_pharmacy" />
+
+    <!-- 버튼 2개 (가로) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnFindPharmacy"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:backgroundTint="#E57373"
+            android:text="약국 찾기"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnSearchMedicine"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:backgroundTint="#E57373"
+            android:text="약 검색"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- 내 약 보관함 버튼 -->
+    <Button
+        android:id="@+id/btnMyMedicine"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:backgroundTint="#E57373"
+        android:text="내 약 보관함"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>
