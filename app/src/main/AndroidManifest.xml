@@ -20,7 +20,7 @@
         <!--GoogleMap API 관련 정보 추가-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${MAPS_API_KEY}" />
+            android:value="@string/google_maps_key" />
 
         <activity
             android:name=".FindPharmacyActivity"
