@@ -87,4 +87,12 @@ dependencies {
     ksp("androidx.room:room-compiler:$room_version")
 
     implementation("androidx.fragment:fragment-ktx:1.8.5")
+
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    implementation("com.google.android.material:material:1.12.0")
 }
