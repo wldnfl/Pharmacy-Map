@@ -1,5 +1,6 @@
 package com.example.pharmacymap.data.remote
 
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -14,5 +15,5 @@ interface PharmacyApi {
         @Query("WGS84_LON") lon: Double,
         @Query("pageNo") pageNo: Int = 1,
         @Query("numOfRows") numOfRows: Int = 50
-    ): Call<PharmacyResponse>
+    ): Call<ResponseBody>
 }

@@ -16,8 +16,8 @@ data class PharmacyItem(
     var dutyTel1: String = "",
 
     @field:Element(name = "wgs84Lat", required = false)
-    var wgs84Lat: Double = 0.0,
+    var wgs84Lat: String = "",
 
     @field:Element(name = "wgs84Lon", required = false)
-    var wgs84Lon: Double = 0.0
+    var wgs84Lon: String = ""
 )
