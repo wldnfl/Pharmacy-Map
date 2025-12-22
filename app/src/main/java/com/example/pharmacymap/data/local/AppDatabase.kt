@@ -25,9 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "medicine.db"
-                ).build().also {
-                    INSTANCE = it
-                }
+                ).build().also { INSTANCE = it }
             }
         }
     }
