@@ -20,6 +20,7 @@
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="#E57373"
             android:textSize="18sp"
             android:textStyle="bold"
             android:paddingTop="12dp"/>
@@ -53,12 +54,16 @@
                 android:id="@+id/btnEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#E57373"
+                android:textColor="#FFFFFF"
                 android:text="수정"/>
 
             <Button
                 android:id="@+id/btnDelete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#E57373"
+                android:textColor="#FFFFFF"
                 android:text="삭제"
                 android:layout_marginStart="12dp"/>
         </LinearLayout>
