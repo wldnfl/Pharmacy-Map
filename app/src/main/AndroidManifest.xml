@@ -34,6 +34,8 @@
         <activity android:name=".ui.medicine.MedicineListActivity" />
         <activity android:name=".ui.medicine.MedicineAddActivity" />
         <activity android:name=".ui.medicine.MedicineDetailActivity" />
+        <activity android:name=".ui.drugsearch.DrugDetailActivity" />
+        <activity android:name=".ui.drugsearch.DrugSearchActivity" />
 
         <activity
             android:name=".MainActivity"
