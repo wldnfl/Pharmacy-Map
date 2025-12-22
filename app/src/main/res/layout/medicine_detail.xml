@@ -12,9 +12,9 @@
         <ImageView
             android:id="@+id/imgMedicine"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:scaleType="centerCrop"
-            android:background="#EEEEEE"/>
+            android:layout_height="360dp"
+            android:src="@drawable/ic_default_medicine"
+            android:scaleType="centerCrop" />
 
         <TextView
             android:id="@+id/tvName"
