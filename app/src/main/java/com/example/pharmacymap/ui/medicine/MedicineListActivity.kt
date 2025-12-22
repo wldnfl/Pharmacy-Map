@@ -76,24 +76,29 @@ class MedicineListActivity : AppCompatActivity() {
                 return
             }
 
-            // 수정 / 상세화면에서 돌아왔을 때 리스트 갱신
-            if (requestCode == REQUEST_DETAIL) {
-                loadMedicines()
+            // 수정 처리
+            if (requestCode == REQUEST_DETAIL && data.hasExtra("updatedMedicine")) {
+                val updatedMedicine = data.getSerializableExtra("updatedMedicine") as MedicineEntity
+                val index = medicineList.indexOfFirst { it.id == updatedMedicine.id }
+                if (index != -1) {
+                    medicineList[index] = updatedMedicine
+                    adapter.notifyItemChanged(index)
+                }
                 return
             }
 
-            // 새로 추가된 약
+            // 추가 처리
             if (requestCode == REQUEST_ADD_MEDICINE) {
-                val newMedicine = MedicineEntity(
-                    name = data.getStringExtra("name") ?: "",
-                    purpose = data.getStringExtra("purpose") ?: "",
-                    startDate = data.getStringExtra("startDate") ?: "",
-                    memo = data.getStringExtra("memo") ?: "",
-                    imagePath = data.getStringExtra("imagePath") ?: "",
-                    createdAt = System.currentTimeMillis()
-                )
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.medicineDao().insertMedicine(newMedicine)
+                    val medicine = MedicineEntity(
+                        name = data.getStringExtra("name") ?: "",
+                        purpose = data.getStringExtra("purpose") ?: "",
+                        startDate = data.getStringExtra("startDate") ?: "",
+                        memo = data.getStringExtra("memo") ?: "",
+                        imagePath = data.getStringExtra("imagePath") ?: "",
+                        createdAt = System.currentTimeMillis()
+                    )
+                    db.medicineDao().insertMedicine(medicine)
                     val updatedList = db.medicineDao().getAllMedicines()
                     runOnUiThread {
                         medicineList.clear()

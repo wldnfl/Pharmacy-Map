@@ -36,9 +36,18 @@ class MedicineAdapter(
         holder.purpose.text = item.purpose
 
         if (item.imagePath.isNotEmpty()) {
+            // content:// 형식인지 확인 후 Uri 처리
+            val uri = if (item.imagePath.startsWith("content://")) {
+                Uri.parse(item.imagePath)
+            } else {
+                Uri.fromFile(File(item.imagePath))
+            }
+
             Glide.with(holder.itemView)
-                .load(Uri.parse(item.imagePath))
+                .load(uri)
                 .into(holder.img)
+        } else {
+            holder.img.setImageResource(R.drawable.ic_default_medicine)
         }
 
         holder.itemView.setOnClickListener { onClick(item) }

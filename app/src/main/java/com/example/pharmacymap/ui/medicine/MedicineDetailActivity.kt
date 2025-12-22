@@ -93,22 +93,39 @@ class MedicineDetailActivity : AppCompatActivity() {
             Glide.with(this).load(File(medicine.imagePath)).into(img)
     }
 
+    // onActivityResult에서 수정된 내용 DB 업데이트 + 결과 반환
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_EDIT && resultCode == Activity.RESULT_OK && data != null) {
-            medicine = MedicineEntity(
-                id = medicine.id,
+            val updatedMedicine = medicine.copy(
                 name = data.getStringExtra("name") ?: medicine.name,
                 purpose = data.getStringExtra("purpose") ?: medicine.purpose,
                 startDate = data.getStringExtra("startDate") ?: medicine.startDate,
                 memo = data.getStringExtra("memo") ?: medicine.memo,
-                imagePath = data.getStringExtra("imagePath") ?: medicine.imagePath,
-                createdAt = medicine.createdAt
+                imagePath = data.getStringExtra("imagePath") ?: medicine.imagePath
             )
+
+            // DB 업데이트
             CoroutineScope(Dispatchers.IO).launch {
-                db.medicineDao().updateMedicine(medicine)
-                runOnUiThread { displayMedicine() }
+                db.medicineDao().updateMedicine(updatedMedicine)
+                runOnUiThread {
+                    medicine = updatedMedicine
+                    // 화면 갱신
+                    tvName.text = medicine.name
+                    tvPurpose.text = "목적: ${medicine.purpose}"
+                    tvStartDate.text = "복용 시작일: ${medicine.startDate}"
+                    tvMemo.text = "메모: ${medicine.memo}"
+                    if (medicine.imagePath.isNotEmpty())
+                        Glide.with(this@MedicineDetailActivity).load(File(medicine.imagePath))
+                            .into(img)
+
+                    // List 화면 갱신을 위해 수정된 데이터 전달
+                    val resultIntent = Intent()
+                    resultIntent.putExtra("updatedMedicineId", medicine.id)
+                    resultIntent.putExtra("updatedMedicine", medicine as java.io.Serializable)
+                    setResult(Activity.RESULT_OK, resultIntent)
+                }
             }
         }
     }
