@@ -7,5 +7,5 @@ import org.simpleframework.xml.Root
 data class PharmacyItems(
 
     @field:ElementList(entry = "item", inline = true, required = false)
-    var itemList: List<PharmacyItem> = emptyList()
+    var itemList: MutableList<PharmacyItem> = mutableListOf()
 )
