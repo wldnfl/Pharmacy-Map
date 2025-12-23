@@ -1,26 +1,33 @@
 package com.example.pharmacymap.ui.medicine
 
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.example.pharmacymap.R
+import com.example.pharmacymap.data.local.AppDatabase
 import com.example.pharmacymap.data.local.entity.MedicineEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Calendar
 
 class MedicineAddActivity : AppCompatActivity() {
 
     private lateinit var imgPreview: ImageView
     private var imageUri: String = ""
     private var existingMedicine: MedicineEntity? = null
+    private lateinit var db: AppDatabase
 
     companion object {
         const val REQUEST_GALLERY = 200
@@ -32,6 +39,8 @@ class MedicineAddActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.medicine_add)
 
+        db = AppDatabase.getInstance(this)
+
         imgPreview = findViewById(R.id.imgPreview)
         val etName = findViewById<EditText>(R.id.etName)
         val etPurpose = findViewById<EditText>(R.id.etPurpose)
@@ -41,23 +50,18 @@ class MedicineAddActivity : AppCompatActivity() {
         val btnGallery = findViewById<Button>(R.id.btnGallery)
         val btnCamera = findViewById<Button>(R.id.btnCamera)
 
-        // EditText 클릭 시 DatePickerDialog 열기
+        // DatePicker
         etStartDate.setOnClickListener {
-            val calendar = java.util.Calendar.getInstance()
-            val year = calendar.get(java.util.Calendar.YEAR)
-            val month = calendar.get(java.util.Calendar.MONTH)
-            val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
-
-            val datePicker = android.app.DatePickerDialog(
+            val calendar = Calendar.getInstance()
+            DatePickerDialog(
                 this,
-                { _, selectedYear, selectedMonth, selectedDay ->
-                    // 선택한 날짜를 EditText에 표시
-                    val monthStr = (selectedMonth + 1).toString().padStart(2, '0')
-                    val dayStr = selectedDay.toString().padStart(2, '0')
-                    etStartDate.setText("$selectedYear-$monthStr-$dayStr")
-                }, year, month, day
-            )
-            datePicker.show()
+                { _, year, month, day ->
+                    etStartDate.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
         }
 
         // 기존 데이터 불러오기 (수정용)
@@ -68,8 +72,12 @@ class MedicineAddActivity : AppCompatActivity() {
             etStartDate.setText(it.startDate)
             etMemo.setText(it.memo)
             imageUri = it.imagePath
-            if (it.imagePath.isNotEmpty())
-                imgPreview.setImageURI(Uri.parse(it.imagePath))
+            if (it.imagePath.isNotEmpty()) {
+                Glide.with(this)
+                    .load(File(it.imagePath))
+                    .fitCenter()
+                    .into(imgPreview)
+            }
         }
 
         // 갤러리 선택
@@ -80,7 +88,6 @@ class MedicineAddActivity : AppCompatActivity() {
 
         // 카메라 촬영
         btnCamera.setOnClickListener {
-            // 권한 확인
             if (checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
                 startActivityForResult(intent, REQUEST_CAMERA)
@@ -92,59 +99,76 @@ class MedicineAddActivity : AppCompatActivity() {
             }
         }
 
-        // 저장 버튼
+        // 저장
         btnSave.setOnClickListener {
-            val resultIntent = Intent().apply {
-                putExtra("name", etName.text.toString())
-                putExtra("purpose", etPurpose.text.toString())
-                putExtra("startDate", etStartDate.text.toString())
-                putExtra("memo", etMemo.text.toString())
-                putExtra("imagePath", imageUri)
+            val name = etName.text.toString()
+            val purpose = etPurpose.text.toString()
+            val startDate = etStartDate.text.toString()
+            val memo = etMemo.text.toString()
+            val createdAt = existingMedicine?.createdAt ?: System.currentTimeMillis()
+
+            val medicine = MedicineEntity(
+                id = existingMedicine?.id ?: 0,
+                name = name,
+                purpose = purpose,
+                startDate = startDate,
+                memo = memo,
+                imagePath = imageUri,
+                createdAt = createdAt
+            )
+
+            CoroutineScope(Dispatchers.IO).launch {
+                if (existingMedicine == null) {
+                    db.medicineDao().insertMedicine(medicine)
+                } else {
+                    db.medicineDao().updateMedicine(medicine)
+                }
+                runOnUiThread {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
             }
-            setResult(Activity.RESULT_OK, resultIntent)
-            finish()
         }
     }
 
-    // 권한 요청 결과 처리
+    // 권한 처리
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                startActivityForResult(intent, REQUEST_CAMERA)
-            }
+        if (requestCode == REQUEST_CAMERA_PERMISSION && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            startActivityForResult(intent, REQUEST_CAMERA)
         }
     }
 
+    // 갤러리/카메라 결과 처리
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != Activity.RESULT_OK || data == null) return
 
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            when (requestCode) {
-                REQUEST_GALLERY -> {
-                    val uri: Uri? = data.data
-                    uri?.let {
-                        imageUri = it.toString()
-                        imgPreview.setImageURI(it)
+        when (requestCode) {
+            REQUEST_GALLERY -> data.data?.let { uri ->
+                // content:// -> 실제 파일로 변환
+                val inputStream = contentResolver.openInputStream(uri)
+                val file = File(cacheDir, "selected_${System.currentTimeMillis()}.jpg")
+                inputStream.use { input ->
+                    FileOutputStream(file).use { output ->
+                        input?.copyTo(output)
                     }
                 }
+                imageUri = file.absolutePath
+                Glide.with(this).load(file).into(imgPreview)
+            }
 
-                REQUEST_CAMERA -> {
-                    val bitmap = data.extras?.get("data") as Bitmap
-                    imgPreview.setImageBitmap(bitmap)
-
-                    // bitmap을 파일로 저장하고 경로를 imageUri에 저장
-                    val file = File(cacheDir, "captured_${System.currentTimeMillis()}.jpg")
-                    FileOutputStream(file).use { out ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                    }
-                    imageUri = file.absolutePath
-                }
+            REQUEST_CAMERA -> {
+                val bitmap = data.extras?.get("data") as? Bitmap ?: return
+                val file = File(cacheDir, "captured_${System.currentTimeMillis()}.jpg")
+                FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
+                imageUri = file.absolutePath
+                Glide.with(this).load(file).into(imgPreview)
             }
         }
     }
