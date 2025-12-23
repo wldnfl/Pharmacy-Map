@@ -11,7 +11,7 @@ import com.example.pharmacymap.data.local.entity.MedicineEntity
 interface MedicineDao {
 
     @Insert
-    suspend fun insertMedicine(medicine: MedicineEntity)
+    suspend fun insertMedicine(medicine: MedicineEntity): Long
 
     @Update
     suspend fun updateMedicine(medicine: MedicineEntity)

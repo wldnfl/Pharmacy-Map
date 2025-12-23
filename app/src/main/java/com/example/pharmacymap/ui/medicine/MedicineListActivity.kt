@@ -70,7 +70,6 @@ class MedicineListActivity : AppCompatActivity() {
 
             when {
                 deleted && deletedId != -1 -> {
-                    // 삭제 즉시 반영
                     val index = medicineList.indexOfFirst { it.id == deletedId }
                     if (index != -1) {
                         medicineList.removeAt(index)
@@ -79,20 +78,22 @@ class MedicineListActivity : AppCompatActivity() {
                 }
 
                 updatedMedicine != null -> {
-                    // 수정 즉시 반영
                     val index = medicineList.indexOfFirst { it.id == updatedMedicine.id }
                     if (index != -1) {
+                        // 기존 항목 수정
                         medicineList[index] = updatedMedicine
                         adapter.notifyItemChanged(index)
+                    } else {
+                        // 새로 추가
+                        medicineList.add(0, updatedMedicine)
+                        adapter.notifyItemInserted(0)
+                        recyclerView.scrollToPosition(0)
                     }
                 }
 
-                else -> {
-                    // 기타 (새로 추가)
-                    loadMedicines()
-                }
+                else -> loadMedicines()
             }
         }
     }
-
 }
+

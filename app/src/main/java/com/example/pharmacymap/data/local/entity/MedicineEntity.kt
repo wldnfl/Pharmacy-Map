@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "medicine")
 data class MedicineEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: Int = 0,
     val imagePath: String,
     val name: String,
     val purpose: String,
