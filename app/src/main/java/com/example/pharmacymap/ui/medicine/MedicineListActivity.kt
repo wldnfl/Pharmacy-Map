@@ -62,8 +62,37 @@ class MedicineListActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            loadMedicines()
+
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            val updatedMedicine = data.getSerializableExtra("medicine") as? MedicineEntity
+            val deletedId = data.getIntExtra("medicineId", -1)
+            val deleted = data.getBooleanExtra("deleted", false)
+
+            when {
+                deleted && deletedId != -1 -> {
+                    // 삭제 즉시 반영
+                    val index = medicineList.indexOfFirst { it.id == deletedId }
+                    if (index != -1) {
+                        medicineList.removeAt(index)
+                        adapter.notifyItemRemoved(index)
+                    }
+                }
+
+                updatedMedicine != null -> {
+                    // 수정 즉시 반영
+                    val index = medicineList.indexOfFirst { it.id == updatedMedicine.id }
+                    if (index != -1) {
+                        medicineList[index] = updatedMedicine
+                        adapter.notifyItemChanged(index)
+                    }
+                }
+
+                else -> {
+                    // 기타 (새로 추가)
+                    loadMedicines()
+                }
+            }
         }
     }
+
 }

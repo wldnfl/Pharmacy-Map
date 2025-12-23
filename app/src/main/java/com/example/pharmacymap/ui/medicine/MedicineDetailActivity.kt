@@ -92,15 +92,17 @@ class MedicineDetailActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        if (requestCode == MedicineAddActivity.REQUEST_CAMERA && resultCode == Activity.RESULT_OK && data != null) return
+
         if (requestCode == REQUEST_EDIT && resultCode == Activity.RESULT_OK && data != null) {
-            // 수정 후 DB 재조회
-            CoroutineScope(Dispatchers.IO).launch {
-                val updatedList = db.medicineDao().getAllMedicines()
-                runOnUiThread {
-                    medicine = updatedList.find { it.id == medicine.id } ?: medicine
-                    displayMedicine()
-                }
+            val updatedMedicine = data.getSerializableExtra("medicine") as? MedicineEntity ?: return
+            medicine = updatedMedicine
+            displayMedicine()
+
+            val resultIntent = Intent().apply {
+                putExtra("medicine", updatedMedicine)
             }
+            setResult(Activity.RESULT_OK, resultIntent)
         }
     }
 }

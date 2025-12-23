@@ -123,12 +123,18 @@ class MedicineAddActivity : AppCompatActivity() {
                 } else {
                     db.medicineDao().updateMedicine(medicine)
                 }
+
+                // 수정된 MedicineEntity 바로 전달
                 runOnUiThread {
-                    setResult(Activity.RESULT_OK)
+                    val resultIntent = Intent().apply {
+                        putExtra("medicine", medicine) // Serializable
+                    }
+                    setResult(Activity.RESULT_OK, resultIntent)
                     finish()
                 }
             }
         }
+
     }
 
     // 권한 처리
