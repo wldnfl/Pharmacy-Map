@@ -1,6 +1,5 @@
 package com.example.pharmacymap.ui.medicine
 
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,14 +12,14 @@ import com.example.pharmacymap.data.local.entity.MedicineEntity
 import java.io.File
 
 class MedicineAdapter(
-    private val items: List<MedicineEntity>,
-    private val onClick: (MedicineEntity) -> Unit
+    private var items: List<MedicineEntity>,
+    private val itemClick: (MedicineEntity) -> Unit
 ) : RecyclerView.Adapter<MedicineAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val img: ImageView = view.findViewById(R.id.imgMedicine)
-        val name: TextView = view.findViewById(R.id.tvMedicineName)
-        val purpose: TextView = view.findViewById(R.id.tvPurpose)
+        val tvName: TextView = view.findViewById(R.id.tvMedicineName)
+        val tvPurpose: TextView = view.findViewById(R.id.tvPurpose)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,29 +28,27 @@ class MedicineAdapter(
         return ViewHolder(view)
     }
 
+    override fun getItemCount(): Int = items.size
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
+        val medicine = items[position]
+        holder.tvName.text = medicine.name
+        holder.tvPurpose.text = medicine.purpose
 
-        holder.name.text = item.name
-        holder.purpose.text = item.purpose
-
-        if (item.imagePath.isNotEmpty()) {
-            // content:// 형식인지 확인 후 Uri 처리
-            val uri = if (item.imagePath.startsWith("content://")) {
-                Uri.parse(item.imagePath)
-            } else {
-                Uri.fromFile(File(item.imagePath))
-            }
-
-            Glide.with(holder.itemView)
-                .load(uri)
+        if (medicine.imagePath.isNotEmpty())
+            Glide.with(holder.img.context)
+                .load(File(medicine.imagePath))
                 .into(holder.img)
-        } else {
+        else
             holder.img.setImageResource(R.drawable.ic_default_medicine)
-        }
 
-        holder.itemView.setOnClickListener { onClick(item) }
+        holder.itemView.setOnClickListener {
+            itemClick(medicine)
+        }
     }
 
-    override fun getItemCount() = items.size
+    fun setItems(newItems: List<MedicineEntity>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 }

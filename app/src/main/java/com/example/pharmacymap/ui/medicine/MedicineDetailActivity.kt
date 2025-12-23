@@ -37,7 +37,6 @@ class MedicineDetailActivity : AppCompatActivity() {
         setContentView(R.layout.medicine_detail)
 
         db = AppDatabase.getInstance(this)
-
         medicine = intent.getSerializableExtra("medicine") as? MedicineEntity ?: run {
             finish()
             return
@@ -53,7 +52,6 @@ class MedicineDetailActivity : AppCompatActivity() {
 
         displayMedicine()
 
-        // 삭제
         btnDelete.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("삭제 확인")
@@ -63,7 +61,7 @@ class MedicineDetailActivity : AppCompatActivity() {
                         db.medicineDao().deleteMedicine(medicine)
                         runOnUiThread {
                             val resultIntent = Intent().apply {
-                                putExtra("deleted", true) // 삭제 알림
+                                putExtra("deleted", true)
                                 putExtra("medicineId", medicine.id)
                             }
                             setResult(Activity.RESULT_OK, resultIntent)
@@ -75,11 +73,9 @@ class MedicineDetailActivity : AppCompatActivity() {
                 .show()
         }
 
-
-        // 수정
         btnEdit.setOnClickListener {
             val intent = Intent(this, MedicineAddActivity::class.java)
-            intent.putExtra("medicine", medicine as java.io.Serializable)
+            intent.putExtra("medicine", medicine)
             startActivityForResult(intent, REQUEST_EDIT)
         }
     }
@@ -93,40 +89,20 @@ class MedicineDetailActivity : AppCompatActivity() {
             Glide.with(this).load(File(medicine.imagePath)).into(img)
     }
 
-    // onActivityResult에서 수정된 내용 DB 업데이트 + 결과 반환
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        if (requestCode == MedicineAddActivity.REQUEST_CAMERA && resultCode == Activity.RESULT_OK && data != null) return
+
         if (requestCode == REQUEST_EDIT && resultCode == Activity.RESULT_OK && data != null) {
-            val updatedMedicine = medicine.copy(
-                name = data.getStringExtra("name") ?: medicine.name,
-                purpose = data.getStringExtra("purpose") ?: medicine.purpose,
-                startDate = data.getStringExtra("startDate") ?: medicine.startDate,
-                memo = data.getStringExtra("memo") ?: medicine.memo,
-                imagePath = data.getStringExtra("imagePath") ?: medicine.imagePath
-            )
+            val updatedMedicine = data.getSerializableExtra("medicine") as? MedicineEntity ?: return
+            medicine = updatedMedicine
+            displayMedicine()
 
-            // DB 업데이트
-            CoroutineScope(Dispatchers.IO).launch {
-                db.medicineDao().updateMedicine(updatedMedicine)
-                runOnUiThread {
-                    medicine = updatedMedicine
-                    // 화면 갱신
-                    tvName.text = medicine.name
-                    tvPurpose.text = "목적: ${medicine.purpose}"
-                    tvStartDate.text = "복용 시작일: ${medicine.startDate}"
-                    tvMemo.text = "메모: ${medicine.memo}"
-                    if (medicine.imagePath.isNotEmpty())
-                        Glide.with(this@MedicineDetailActivity).load(File(medicine.imagePath))
-                            .into(img)
-
-                    // List 화면 갱신을 위해 수정된 데이터 전달
-                    val resultIntent = Intent()
-                    resultIntent.putExtra("updatedMedicineId", medicine.id)
-                    resultIntent.putExtra("updatedMedicine", medicine as java.io.Serializable)
-                    setResult(Activity.RESULT_OK, resultIntent)
-                }
+            val resultIntent = Intent().apply {
+                putExtra("medicine", updatedMedicine)
             }
+            setResult(Activity.RESULT_OK, resultIntent)
         }
     }
 }

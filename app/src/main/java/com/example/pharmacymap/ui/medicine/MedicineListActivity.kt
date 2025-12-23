@@ -16,13 +16,13 @@ import kotlinx.coroutines.launch
 
 class MedicineListActivity : AppCompatActivity() {
 
-    private val medicineList = mutableListOf<MedicineEntity>()
+    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MedicineAdapter
     private lateinit var db: AppDatabase
+    private val medicineList = mutableListOf<MedicineEntity>()
 
     companion object {
-        const val REQUEST_ADD_MEDICINE = 100
-        const val REQUEST_DETAIL = 101
+        const val REQUEST_ADD = 100
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,35 +31,32 @@ class MedicineListActivity : AppCompatActivity() {
 
         db = AppDatabase.getInstance(this)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerMedicine)
-        val fab = findViewById<FloatingActionButton>(R.id.fabAddMedicine)
-
-        // Adapter 초기화: 클릭 시 상세화면으로 이동
+        recyclerView = findViewById(R.id.recyclerMedicine)
+        recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = MedicineAdapter(medicineList) { medicine ->
             val intent = Intent(this, MedicineDetailActivity::class.java)
-            intent.putExtra("medicine", medicine as java.io.Serializable)
-            startActivityForResult(intent, REQUEST_DETAIL)
+            intent.putExtra("medicine", medicine)
+            startActivityForResult(intent, REQUEST_ADD)
         }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        // + 버튼 클릭 시 MedicineAddActivity로 이동
-        fab.setOnClickListener {
+        val fabAdd: FloatingActionButton = findViewById(R.id.fabAddMedicine)
+        fabAdd.setOnClickListener {
             val intent = Intent(this, MedicineAddActivity::class.java)
-            startActivityForResult(intent, REQUEST_ADD_MEDICINE)
+            startActivityForResult(intent, REQUEST_ADD)
         }
 
-        loadMedicines() // 앱 시작 시 DB에서 데이터 로드
+        loadMedicines()
     }
 
-    // DB에서 약 목록 가져와 리스트 갱신
     private fun loadMedicines() {
         CoroutineScope(Dispatchers.IO).launch {
             val list = db.medicineDao().getAllMedicines()
-            medicineList.clear()
-            medicineList.addAll(list)
-            runOnUiThread { adapter.notifyDataSetChanged() }
+            runOnUiThread {
+                medicineList.clear()
+                medicineList.addAll(list)
+                adapter.setItems(medicineList)
+            }
         }
     }
 
@@ -67,46 +64,35 @@ class MedicineListActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK && data != null) {
+            val updatedMedicine = data.getSerializableExtra("medicine") as? MedicineEntity
+            val deletedId = data.getIntExtra("medicineId", -1)
+            val deleted = data.getBooleanExtra("deleted", false)
 
-            // 삭제 처리
-            if (data.getBooleanExtra("deleted", false)) {
-                val deletedId = data.getIntExtra("medicineId", -1)
-                medicineList.removeAll { it.id == deletedId }
-                adapter.notifyDataSetChanged()
-                return
-            }
-
-            // 수정 처리
-            if (requestCode == REQUEST_DETAIL && data.hasExtra("updatedMedicine")) {
-                val updatedMedicine = data.getSerializableExtra("updatedMedicine") as MedicineEntity
-                val index = medicineList.indexOfFirst { it.id == updatedMedicine.id }
-                if (index != -1) {
-                    medicineList[index] = updatedMedicine
-                    adapter.notifyItemChanged(index)
-                }
-                return
-            }
-
-            // 추가 처리
-            if (requestCode == REQUEST_ADD_MEDICINE) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val medicine = MedicineEntity(
-                        name = data.getStringExtra("name") ?: "",
-                        purpose = data.getStringExtra("purpose") ?: "",
-                        startDate = data.getStringExtra("startDate") ?: "",
-                        memo = data.getStringExtra("memo") ?: "",
-                        imagePath = data.getStringExtra("imagePath") ?: "",
-                        createdAt = System.currentTimeMillis()
-                    )
-                    db.medicineDao().insertMedicine(medicine)
-                    val updatedList = db.medicineDao().getAllMedicines()
-                    runOnUiThread {
-                        medicineList.clear()
-                        medicineList.addAll(updatedList)
-                        adapter.notifyDataSetChanged()
+            when {
+                deleted && deletedId != -1 -> {
+                    // 삭제 즉시 반영
+                    val index = medicineList.indexOfFirst { it.id == deletedId }
+                    if (index != -1) {
+                        medicineList.removeAt(index)
+                        adapter.notifyItemRemoved(index)
                     }
+                }
+
+                updatedMedicine != null -> {
+                    // 수정 즉시 반영
+                    val index = medicineList.indexOfFirst { it.id == updatedMedicine.id }
+                    if (index != -1) {
+                        medicineList[index] = updatedMedicine
+                        adapter.notifyItemChanged(index)
+                    }
+                }
+
+                else -> {
+                    // 기타 (새로 추가)
+                    loadMedicines()
                 }
             }
         }
     }
+
 }

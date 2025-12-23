@@ -19,19 +19,21 @@
         android:id="@+id/tvMedicineName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
+        android:layout_marginStart="16dp"
         android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#E57373"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/imgMedicine"
-        app:layout_constraintTop_toTopOf="@id/imgMedicine"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="@id/imgMedicine" />
 
     <TextView
         android:id="@+id/tvPurpose"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/tvMedicineName"
-        app:layout_constraintTop_toBottomOf="@id/tvMedicineName"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toStartOf="@id/tvMedicineName"
+        app:layout_constraintTop_toBottomOf="@id/tvMedicineName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
