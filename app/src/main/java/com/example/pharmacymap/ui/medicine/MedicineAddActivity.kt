@@ -50,6 +50,13 @@ class MedicineAddActivity : AppCompatActivity() {
         val btnGallery = findViewById<Button>(R.id.btnGallery)
         val btnCamera = findViewById<Button>(R.id.btnCamera)
 
+        // 날짜 입력 EditText 직접 입력 막기
+        etStartDate.apply {
+            isFocusable = false
+            isClickable = true
+            keyListener = null
+        }
+
         // DatePicker
         etStartDate.setOnClickListener {
             val calendar = Calendar.getInstance()
