@@ -126,7 +126,8 @@ class MedicineAddActivity : AppCompatActivity() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 if (existingMedicine == null) {
-                    db.medicineDao().insertMedicine(medicine)
+                    val newId = db.medicineDao().insertMedicine(medicine)
+                    medicine.id = newId.toInt()
                 } else {
                     db.medicineDao().updateMedicine(medicine)
                 }
